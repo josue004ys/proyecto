@@ -1,5 +1,6 @@
 package com.example.proyecto.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,6 +141,16 @@ public class AuthController {
                 "error", "Error al inicializar datos: " + e.getMessage()
             ));
         }
+    }
+
+    @PostMapping("/test-connection")
+    public ResponseEntity<Object> testConnection() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "OK");
+        response.put("message", "Backend funcionando correctamente");
+        response.put("timestamp", java.time.LocalDateTime.now());
+        response.put("version", "1.0.0");
+        return ResponseEntity.ok(response);
     }
 
     // Clase para la petición de login
