@@ -1,16 +1,17 @@
 package com.example.proyecto.repository;
 
-import com.example.proyecto.entity.Cita;
-import com.example.proyecto.entity.Doctor;
-import com.example.proyecto.entity.Paciente;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.example.proyecto.entity.Cita;
+import com.example.proyecto.entity.Doctor;
+import com.example.proyecto.entity.Paciente;
 
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
@@ -18,6 +19,16 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findByPacienteOrderByFechaDescHoraDesc(Paciente paciente);
     List<Cita> findByDoctorOrderByFechaAscHoraAsc(Doctor doctor);
     List<Cita> findByFechaOrderByHoraAsc(LocalDate fecha);
+    
+    // Búsquedas con fetch join para cargar las relaciones
+    @Query("SELECT c FROM Cita c JOIN FETCH c.doctor JOIN FETCH c.paciente WHERE c.paciente = :paciente ORDER BY c.fecha DESC, c.hora DESC")
+    List<Cita> findByPacienteWithDetailsOrderByFechaDescHoraDesc(@Param("paciente") Paciente paciente);
+    
+    @Query("SELECT c FROM Cita c JOIN FETCH c.doctor JOIN FETCH c.paciente WHERE c.doctor = :doctor ORDER BY c.fecha ASC, c.hora ASC")
+    List<Cita> findByDoctorWithDetailsOrderByFechaAscHoraAsc(@Param("doctor") Doctor doctor);
+    
+    @Query("SELECT c FROM Cita c JOIN FETCH c.doctor JOIN FETCH c.paciente WHERE c.fecha = :fecha ORDER BY c.hora ASC")
+    List<Cita> findByFechaWithDetailsOrderByHoraAsc(@Param("fecha") LocalDate fecha);
     
     // Verificaciones de disponibilidad
     boolean existsByFechaAndHoraAndDoctorIdAndEstadoNot(

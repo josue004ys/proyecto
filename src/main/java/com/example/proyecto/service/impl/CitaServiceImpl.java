@@ -80,13 +80,13 @@ public class CitaServiceImpl implements CitaService {
     @Override
     @Transactional(readOnly = true)
     public List<Cita> listarCitasPorPaciente(Paciente paciente) {
-        return citaRepo.findByPacienteOrderByFechaDescHoraDesc(paciente);
+        return citaRepo.findByPacienteWithDetailsOrderByFechaDescHoraDesc(paciente);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Cita> listarCitasPorDoctor(Doctor doctor) {
-        return citaRepo.findByDoctorOrderByFechaAscHoraAsc(doctor);
+        return citaRepo.findByDoctorWithDetailsOrderByFechaAscHoraAsc(doctor);
     }
 
     @Override
@@ -171,7 +171,7 @@ public class CitaServiceImpl implements CitaService {
     @Override
     @Transactional(readOnly = true)
     public List<Cita> obtenerCitasDelDia(LocalDate fecha) {
-        return citaRepo.findByFechaOrderByHoraAsc(fecha);
+        return citaRepo.findByFechaWithDetailsOrderByHoraAsc(fecha);
     }
 
     @Override

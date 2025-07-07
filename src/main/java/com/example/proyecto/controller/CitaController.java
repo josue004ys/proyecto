@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.proyecto.dto.CitaDTO;
 import com.example.proyecto.entity.Cita;
 import com.example.proyecto.entity.Doctor;
 import com.example.proyecto.entity.Paciente;
@@ -110,7 +112,10 @@ public class CitaController {
                     .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
             
             List<Cita> citas = citaService.listarCitasPorPaciente(paciente);
-            return ResponseEntity.ok(citas);
+            List<CitaDTO> citasDTO = citas.stream()
+                    .map(CitaDTO::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(citasDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -121,7 +126,10 @@ public class CitaController {
         try {
             Doctor doctor = doctorService.obtenerDoctorPorId(doctorId);
             List<Cita> citas = citaService.listarCitasPorDoctor(doctor);
-            return ResponseEntity.ok(citas);
+            List<CitaDTO> citasDTO = citas.stream()
+                    .map(CitaDTO::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(citasDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -187,7 +195,10 @@ public class CitaController {
     public ResponseEntity<?> obtenerCitasHoy() {
         try {
             List<Cita> citas = citaService.obtenerCitasDelDia(LocalDate.now());
-            return ResponseEntity.ok(citas);
+            List<CitaDTO> citasDTO = citas.stream()
+                    .map(CitaDTO::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(citasDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
