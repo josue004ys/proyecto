@@ -173,4 +173,10 @@ public class CitaServiceImpl implements CitaService {
     public List<Cita> obtenerCitasDelDia(LocalDate fecha) {
         return citaRepo.findByFechaOrderByHoraAsc(fecha);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cita> obtenerTodasLasCitas() {
+        return citaRepo.findAll();
+    }
 }

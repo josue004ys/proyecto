@@ -17,4 +17,5 @@ public interface CitaService {
     void cancelarCita(Long id, String motivo);
     Cita confirmarCita(Long id);
     List<Cita> obtenerCitasDelDia(LocalDate fecha);
+    List<Cita> obtenerTodasLasCitas();
 }

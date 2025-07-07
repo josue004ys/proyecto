@@ -31,7 +31,7 @@ public class HorarioDoctor {
 
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("doctor-horarios")
     private Doctor doctor;
 
     @Enumerated(EnumType.STRING)

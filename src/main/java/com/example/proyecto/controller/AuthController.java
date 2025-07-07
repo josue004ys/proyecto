@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.proyecto.entity.Doctor;
 import com.example.proyecto.entity.Paciente;
 import com.example.proyecto.entity.RolUsuario;
+import com.example.proyecto.repository.DoctorRepository;
 import com.example.proyecto.repository.PacienteRepository;
 import com.example.proyecto.service.PacienteService;
 
@@ -26,6 +28,9 @@ public class AuthController {
     private PacienteRepository pacienteRepo;
 
     @Autowired
+    private DoctorRepository doctorRepo;
+
+    @Autowired
     private PacienteService pacienteService;
 
     @Autowired
@@ -34,7 +39,27 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody LoginRequest request) {
         try {
-            // Buscar paciente por correo
+            // Primero buscar en doctores
+            Doctor doctor = doctorRepo.findByCorreo(request.getCorreo())
+                .orElse(null);
+            
+            if (doctor != null) {
+                // Verificar contraseña del doctor (sin hash por ahora)
+                if (doctor.getPassword().equals(request.getPassword())) {
+                    LoginResponse response = new LoginResponse(
+                        doctor.getCorreo(),
+                        doctor.getNombre(),
+                        "MEDICO", // Rol del doctor (consistente con frontend)
+                        "Médico", // Descripción del rol
+                        "Login exitoso como doctor"
+                    );
+                    return ResponseEntity.ok(response);
+                } else {
+                    return ResponseEntity.badRequest().body("Contraseña incorrecta");
+                }
+            }
+            
+            // Si no es doctor, buscar en pacientes
             Paciente paciente = pacienteRepo.findByCorreo(request.getCorreo())
                 .orElse(null);
             
@@ -42,7 +67,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body("Usuario no encontrado");
             }
             
-            // Verificar contraseña usando BCrypt
+            // Verificar contraseña usando BCrypt para pacientes
             if (passwordEncoder.matches(request.getPassword(), paciente.getPassword())) {
                 
                 // Devolver datos del paciente incluyendo rol

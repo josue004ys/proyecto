@@ -192,4 +192,14 @@ public class CitaController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping
+    public ResponseEntity<?> obtenerTodasLasCitas() {
+        try {
+            List<Cita> citas = citaService.obtenerTodasLasCitas();
+            return ResponseEntity.ok(citas);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -48,12 +48,12 @@ public class Doctor {
 
     // Relación con horarios
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference("doctor-horarios")
     private List<HorarioDoctor> horarios;
 
     // Relación con citas
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference("doctor-citas")
     private List<Cita> citas;
 
     public enum EstadoDoctor {
