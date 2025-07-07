@@ -62,4 +62,16 @@ public class DoctorController {
         Doctor doctorActualizado = doctorService.obtenerDoctorPorId(id);
         return ResponseEntity.ok(doctorActualizado);
     }
+
+    @PutMapping("/{id}/toggle-estado")
+    public ResponseEntity<Doctor> toggleEstadoDoctor(@PathVariable Long id) {
+        Doctor doctor = doctorService.obtenerDoctorPorId(id);
+        Doctor.EstadoDoctor nuevoEstado = doctor.getEstado() == Doctor.EstadoDoctor.ACTIVO 
+            ? Doctor.EstadoDoctor.INACTIVO 
+            : Doctor.EstadoDoctor.ACTIVO;
+        
+        doctorService.cambiarEstadoDoctor(id, nuevoEstado);
+        Doctor doctorActualizado = doctorService.obtenerDoctorPorId(id);
+        return ResponseEntity.ok(doctorActualizado);
+    }
 }

@@ -51,7 +51,8 @@ public class AuthController {
                         doctor.getNombre(),
                         "MEDICO", // Rol del doctor (consistente con frontend)
                         "Médico", // Descripción del rol
-                        "Login exitoso como doctor"
+                        "Login exitoso como doctor",
+                        doctor.getId() // Incluir doctorId
                     );
                     return ResponseEntity.ok(response);
                 } else {
@@ -221,6 +222,7 @@ public class AuthController {
         private String rol;
         private String rolDescripcion;
         private String mensaje;
+        private Long doctorId; // Agregar doctorId para doctores
         
         public LoginResponse(String correo, String nombre, String rol, String rolDescripcion, String mensaje) {
             this.correo = correo;
@@ -228,6 +230,15 @@ public class AuthController {
             this.rol = rol;
             this.rolDescripcion = rolDescripcion;
             this.mensaje = mensaje;
+        }
+        
+        public LoginResponse(String correo, String nombre, String rol, String rolDescripcion, String mensaje, Long doctorId) {
+            this.correo = correo;
+            this.nombre = nombre;
+            this.rol = rol;
+            this.rolDescripcion = rolDescripcion;
+            this.mensaje = mensaje;
+            this.doctorId = doctorId;
         }
         
         public String getCorreo() { return correo; }
@@ -244,5 +255,8 @@ public class AuthController {
         
         public String getMensaje() { return mensaje; }
         public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+        
+        public Long getDoctorId() { return doctorId; }
+        public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
     }
 }
