@@ -22,7 +22,7 @@ public interface HorarioDoctorService {
     List<LocalTime> obtenerHorasDisponibles(Long doctorId, LocalDate fecha);
     List<HorarioDoctor> obtenerHorariosSemana(Long doctorId);
     
-    // Nuevos métodos para el dashboard
+    // Nuevos métodos para el dashboardconn
     HorarioDoctor guardarHorario(HorarioDoctor horario);
     HorarioDoctor obtenerHorarioPorId(Long horarioId);
     Optional<HorarioDoctor> obtenerHorarioPorIdOptional(Long horarioId);

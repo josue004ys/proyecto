@@ -59,16 +59,23 @@ public class CitaController {
             }
 
             // Extraer datos de la solicitud
-            Long doctorId = Long.parseLong(solicitud.get("doctorId").toString());
+            Long doctorId = Long.valueOf(solicitud.get("doctorId").toString());
             String fecha = solicitud.get("fecha").toString();
             String hora = solicitud.get("hora").toString();
             String motivoConsulta = solicitud.get("motivoConsulta").toString();
             
-            // Datos del paciente (pueden venir si es asistente)
-            String correoPaciente = solicitud.containsKey("correoPaciente") ? 
-                solicitud.get("correoPaciente").toString() : "paciente@test.com"; // Default para demo
+            // Datos del paciente - REQUERIDOS
+            if (!solicitud.containsKey("correoPaciente")) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "El correo del paciente es requerido"
+                ));
+            }
+            
+            String correoPaciente = solicitud.get("correoPaciente").toString();
             String nombrePaciente = solicitud.containsKey("nombrePaciente") ? 
-                solicitud.get("nombrePaciente").toString() : "María González"; // Default para demo
+                solicitud.get("nombrePaciente").toString() : "Usuario";
+
+            System.out.println("🏥 Agendando cita para paciente: " + correoPaciente);
 
             // Buscar o crear paciente
             Paciente paciente = pacienteService.buscarPorCorreo(correoPaciente)
@@ -211,6 +218,143 @@ public class CitaController {
             return ResponseEntity.ok(citas);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ========= GESTIÓN DE CITAS CUANDO EL DOCTOR NO PUEDE ATENDER =========
+
+    /**
+     * Reprogramar una cita cuando el doctor no puede atender
+     */
+    @PutMapping("/{citaId}/reprogramar")
+    public ResponseEntity<?> reprogramarCita(
+            @PathVariable Long citaId,
+            @RequestBody Map<String, Object> reprogramacionData) {
+        try {
+            String nuevaFecha = (String) reprogramacionData.get("nuevaFecha");
+            String nuevaHora = (String) reprogramacionData.get("nuevaHora");
+            String motivo = (String) reprogramacionData.get("motivo");
+            String mensajePaciente = (String) reprogramacionData.get("mensajePaciente");
+
+            CitaDTO citaReprogramada = citaService.reprogramarCita(
+                citaId, 
+                LocalDate.parse(nuevaFecha), 
+                LocalTime.parse(nuevaHora),
+                motivo,
+                mensajePaciente
+            );
+
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Cita reprogramada exitosamente",
+                "cita", citaReprogramada,
+                "notificacionEnviada", true
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Error al reprogramar la cita: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Cancelar una cita por parte del doctor con notificación al paciente
+     */
+    @PutMapping("/{citaId}/cancelar-doctor")
+    public ResponseEntity<?> cancelarCitaDoctor(
+            @PathVariable Long citaId,
+            @RequestBody Map<String, String> cancelacionData) {
+        try {
+            String motivo = cancelacionData.get("motivo");
+            String mensajePaciente = cancelacionData.get("mensajePaciente");
+            
+            CitaDTO citaCancelada = citaService.cancelarCitaDoctor(citaId, motivo, mensajePaciente);
+            
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Cita cancelada exitosamente",
+                "cita", citaCancelada,
+                "notificacionEnviada", true
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Error al cancelar la cita: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Reasignar una cita a otro doctor de la misma especialidad
+     */
+    @PutMapping("/{citaId}/reasignar")
+    public ResponseEntity<?> reasignarCita(
+            @PathVariable Long citaId,
+            @RequestBody Map<String, Object> reasignacionData) {
+        try {
+            Long nuevoDoctorId = Long.valueOf(reasignacionData.get("nuevoDoctorId").toString());
+            String motivo = (String) reasignacionData.get("motivo");
+            String mensajePaciente = (String) reasignacionData.get("mensajePaciente");
+            
+            // Verificar que el nuevo doctor existe y tiene la misma especialidad
+            Doctor nuevoDoctor = doctorService.obtenerDoctorPorId(nuevoDoctorId);
+            if (nuevoDoctor == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Doctor no encontrado"
+                ));
+            }
+
+            CitaDTO citaReasignada = citaService.reasignarCita(citaId, nuevoDoctorId, motivo, mensajePaciente);
+            
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Cita reasignada exitosamente",
+                "cita", citaReasignada,
+                "nuevoDoctor", nuevoDoctor.getNombre(),
+                "notificacionEnviada", true
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Error al reasignar la cita: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Obtener doctores disponibles de la misma especialidad para reasignación
+     */
+    @GetMapping("/{citaId}/doctores-disponibles")
+    public ResponseEntity<?> obtenerDoctoresDisponibles(@PathVariable Long citaId) {
+        try {
+            List<Doctor> doctoresDisponibles = citaService.obtenerDoctoresDisponiblesParaReasignacion(citaId);
+            
+            List<Map<String, Object>> doctoresData = doctoresDisponibles.stream()
+                .map(doctor -> {
+                    Map<String, Object> doctorMap = new java.util.HashMap<>();
+                    doctorMap.put("id", doctor.getId());
+                    doctorMap.put("nombre", doctor.getNombre() != null ? doctor.getNombre() : "Sin nombre");
+                    doctorMap.put("especialidad", doctor.getEspecialidad() != null ? doctor.getEspecialidad() : "Sin especialidad");
+                    doctorMap.put("correo", doctor.getCorreo() != null ? doctor.getCorreo() : "Sin correo");
+                    return doctorMap;
+                })
+                .collect(Collectors.toList());
+
+            return ResponseEntity.ok(doctoresData);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Error al obtener doctores disponibles: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Obtener historial de cambios de una cita
+     */
+    @GetMapping("/{citaId}/historial")
+    public ResponseEntity<?> obtenerHistorialCita(@PathVariable Long citaId) {
+        try {
+            List<Map<String, Object>> historial = citaService.obtenerHistorialCambios(citaId);
+            return ResponseEntity.ok(historial);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Error al obtener historial: " + e.getMessage()
+            ));
         }
     }
 }

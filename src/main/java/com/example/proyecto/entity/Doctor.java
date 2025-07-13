@@ -2,6 +2,7 @@ package com.example.proyecto.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -53,7 +54,7 @@ public class Doctor {
 
     // Relación con citas
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference("doctor-citas")
+    @JsonIgnore
     private List<Cita> citas;
 
     public enum EstadoDoctor {

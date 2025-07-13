@@ -1,14 +1,15 @@
 package com.example.proyecto.repository;
 
-import com.example.proyecto.entity.Doctor;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.example.proyecto.entity.Doctor;
 
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     
@@ -32,4 +33,9 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
         @Param("doctorId") Long doctorId, 
         @Param("diaSemana") DayOfWeek diaSemana, 
         @Param("hora") LocalTime hora);
+    
+    // Método para obtener doctores de la misma especialidad excluyendo uno específico  
+    @Query("SELECT d FROM Doctor d WHERE d.especialidad = :especialidad AND d.id != :doctorId AND d.estado = 'ACTIVO'")
+    List<Doctor> findByEspecialidadAndIdNot(@Param("especialidad") String especialidad, @Param("doctorId") Long doctorId);
+
 }

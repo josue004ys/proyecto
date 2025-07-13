@@ -1,17 +1,25 @@
 package com.example.proyecto.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "citas")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Cita {
@@ -29,12 +37,10 @@ public class Cita {
 
     @ManyToOne
     @JoinColumn(name = "paciente_id")
-    @JsonBackReference("paciente-citas")
     private Paciente paciente;
 
     @ManyToOne
     @JoinColumn(name = "doctor_id")
-    @JsonBackReference("doctor-citas")
     private Doctor doctor;
 
     private String motivoConsulta;
@@ -73,4 +79,47 @@ public class Cita {
             return descripcion;
         }
     }
+
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public LocalDate getFecha() { return fecha; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+
+    public LocalTime getHora() { return hora; }
+    public void setHora(LocalTime hora) { this.hora = hora; }
+
+    public EstadoCita getEstado() { return estado; }
+    public void setEstado(EstadoCita estado) { this.estado = estado; }
+
+    public Paciente getPaciente() { return paciente; }
+    public void setPaciente(Paciente paciente) { this.paciente = paciente; }
+
+    public Doctor getDoctor() { return doctor; }
+    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
+
+    public String getMotivoConsulta() { return motivoConsulta; }
+    public void setMotivoConsulta(String motivoConsulta) { this.motivoConsulta = motivoConsulta; }
+
+    public String getObservacionesPaciente() { return observacionesPaciente; }
+    public void setObservacionesPaciente(String observacionesPaciente) { this.observacionesPaciente = observacionesPaciente; }
+
+    public String getDiagnostico() { return diagnostico; }
+    public void setDiagnostico(String diagnostico) { this.diagnostico = diagnostico; }
+
+    public String getTratamiento() { return tratamiento; }
+    public void setTratamiento(String tratamiento) { this.tratamiento = tratamiento; }
+
+    public String getObservacionesDoctor() { return observacionesDoctor; }
+    public void setObservacionesDoctor(String observacionesDoctor) { this.observacionesDoctor = observacionesDoctor; }
+
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+
+    public LocalDateTime getFechaModificacion() { return fechaModificacion; }
+    public void setFechaModificacion(LocalDateTime fechaModificacion) { this.fechaModificacion = fechaModificacion; }
+
+    public FacturacionCita getFacturacion() { return facturacion; }
+    public void setFacturacion(FacturacionCita facturacion) { this.facturacion = facturacion; }
 }

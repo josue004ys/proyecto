@@ -41,7 +41,8 @@ public class CitaDTO {
         if (cita.getDoctor() != null) {
             this.doctorNombre = cita.getDoctor().getNombre();
             this.doctorCorreo = cita.getDoctor().getCorreo();
-            this.especialidad = cita.getDoctor().getEspecialidad();
+            this.especialidad = cita.getDoctor().getEspecialidad() != null ? 
+                cita.getDoctor().getEspecialidad() : "Sin especialidad";
         }
         
         // Información del paciente
@@ -57,6 +58,11 @@ public class CitaDTO {
     
     public String getFechaHora() { return fechaHora; }
     public void setFechaHora(String fechaHora) { this.fechaHora = fechaHora; }
+    
+    // Método adicional para recibir LocalDateTime
+    public void setFechaHora(LocalDateTime fechaHora) { 
+        this.fechaHora = fechaHora != null ? fechaHora.toString() : null;
+    }
     
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }

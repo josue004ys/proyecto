@@ -1,6 +1,8 @@
 package com.example.proyecto.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +42,26 @@ public class PacienteController {
         return pacienteService.buscarPorCorreo(correo)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Endpoint de debug para verificar pacientes
+    @GetMapping("/debug")
+    public ResponseEntity<?> debugPacientes() {
+        try {
+            List<Paciente> pacientes = pacienteService.obtenerTodosPacientes();
+            return ResponseEntity.ok(Map.of(
+                "totalPacientes", pacientes.size(),
+                "pacientes", pacientes.stream()
+                    .map(paciente -> Map.of(
+                        "id", paciente.getId(),
+                        "nombre", paciente.getNombre(),
+                        "correo", paciente.getCorreo(),
+                        "rol", paciente.getRol().name()
+                    ))
+                    .collect(Collectors.toList())
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }
