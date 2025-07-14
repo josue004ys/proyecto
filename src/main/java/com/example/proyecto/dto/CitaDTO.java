@@ -11,6 +11,7 @@ public class CitaDTO {
     private String motivoConsulta;
     private String doctorNombre;
     private String doctorCorreo;
+    private Long doctorId;
     private String especialidad;
     private String pacienteNombre;
     private String pacienteCorreo;
@@ -41,6 +42,7 @@ public class CitaDTO {
         if (cita.getDoctor() != null) {
             this.doctorNombre = cita.getDoctor().getNombre();
             this.doctorCorreo = cita.getDoctor().getCorreo();
+            this.doctorId = cita.getDoctor().getId();
             this.especialidad = cita.getDoctor().getEspecialidad() != null ? 
                 cita.getDoctor().getEspecialidad() : "Sin especialidad";
         }
@@ -75,6 +77,9 @@ public class CitaDTO {
     
     public String getDoctorCorreo() { return doctorCorreo; }
     public void setDoctorCorreo(String doctorCorreo) { this.doctorCorreo = doctorCorreo; }
+    
+    public Long getDoctorId() { return doctorId; }
+    public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
     
     public String getEspecialidad() { return especialidad; }
     public void setEspecialidad(String especialidad) { this.especialidad = especialidad; }

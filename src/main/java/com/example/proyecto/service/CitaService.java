@@ -47,4 +47,19 @@ public interface CitaService {
      * Obtener historial de cambios de una cita
      */
     List<Map<String, Object>> obtenerHistorialCambios(Long citaId);
+    
+    /**
+     * Obtener horarios disponibles de un doctor para una fecha específica
+     */
+    List<LocalTime> obtenerHorariosDisponibles(Long doctorId, LocalDate fecha);
+    
+    /**
+     * Obtener una cita por su ID
+     */
+    Cita obtenerCitaPorId(Long citaId);
+    
+    /**
+     * Verificar disponibilidad de un doctor en fecha y hora específica
+     */
+    boolean verificarDisponibilidad(LocalDate fecha, LocalTime hora, Long doctorId);
 }

@@ -215,7 +215,10 @@ public class CitaController {
     public ResponseEntity<?> obtenerTodasLasCitas() {
         try {
             List<Cita> citas = citaService.obtenerTodasLasCitas();
-            return ResponseEntity.ok(citas);
+            List<CitaDTO> citasDTO = citas.stream()
+                .map(CitaDTO::new)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(citasDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -354,6 +357,109 @@ public class CitaController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "Error al obtener historial: " + e.getMessage()
+            ));
+        }
+    }
+
+    // ========= GESTIÓN DE CITAS POR PARTE DEL PACIENTE =========
+
+    /**
+     * Cancelar cita por parte del paciente
+     */
+    @PutMapping("/{citaId}/cancelar-paciente")
+    public ResponseEntity<?> cancelarCitaPorPaciente(
+            @PathVariable Long citaId,
+            @RequestBody Map<String, String> datos) {
+        try {
+            String motivo = datos.getOrDefault("motivo", "Cancelación solicitada por el paciente");
+            String correoUsuario = datos.get("correoUsuario");
+            
+            if (correoUsuario == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Correo del usuario requerido"));
+            }
+
+            // Verificar que la cita pertenece al paciente
+            Cita cita = citaService.obtenerCitaPorId(citaId);
+            if (!cita.getPaciente().getCorreo().equals(correoUsuario)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No tiene permisos para cancelar esta cita"));
+            }
+
+            citaService.cancelarCita(citaId, motivo);
+            
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Cita cancelada exitosamente",
+                "motivo", motivo
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Solicitar reprogramación de cita por parte del paciente
+     */
+    @PostMapping("/{citaId}/solicitar-reprogramacion")
+    public ResponseEntity<?> solicitarReprogramacionPorPaciente(
+            @PathVariable Long citaId,
+            @RequestBody Map<String, String> datos) {
+        try {
+            String nuevaFecha = datos.get("nuevaFecha");
+            String nuevaHora = datos.get("nuevaHora");
+            String motivo = datos.getOrDefault("motivo", "Solicitud de reprogramación por el paciente");
+            String correoUsuario = datos.get("correoUsuario");
+            
+            if (correoUsuario == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Correo del usuario requerido"));
+            }
+
+            // Verificar que la cita pertenece al paciente
+            Cita cita = citaService.obtenerCitaPorId(citaId);
+            if (!cita.getPaciente().getCorreo().equals(correoUsuario)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No tiene permisos para reprogramar esta cita"));
+            }
+
+            // Verificar disponibilidad en la nueva fecha/hora
+            LocalDate fecha = LocalDate.parse(nuevaFecha);
+            LocalTime hora = LocalTime.parse(nuevaHora);
+            
+            boolean disponible = citaService.verificarDisponibilidad(fecha, hora, cita.getDoctor().getId());
+            if (!disponible) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "El horario solicitado no está disponible"
+                ));
+            }
+
+            // Reprogramar la cita
+            CitaDTO citaDTO = citaService.reprogramarCita(citaId, fecha, hora, motivo, "Reprogramada por indisponibilidad del doctor");
+            
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Cita reprogramada exitosamente",
+                "cita", citaDTO
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Obtener horarios disponibles de un doctor para una fecha específica
+     */
+    @GetMapping("/doctor/{doctorId}/horarios-disponibles")
+    public ResponseEntity<?> obtenerHorariosDisponibles(
+            @PathVariable Long doctorId,
+            @RequestParam String fecha) {
+        try {
+            LocalDate fechaConsulta = LocalDate.parse(fecha);
+            List<LocalTime> horariosDisponibles = citaService.obtenerHorariosDisponibles(doctorId, fechaConsulta);
+            
+            return ResponseEntity.ok(Map.of(
+                "fecha", fecha,
+                "doctorId", doctorId,
+                "horarios", horariosDisponibles
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Error al obtener horarios disponibles: " + e.getMessage()
             ));
         }
     }

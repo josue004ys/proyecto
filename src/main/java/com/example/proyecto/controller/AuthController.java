@@ -1,8 +1,5 @@
 package com.example.proyecto.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -132,51 +129,6 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al registrar usuario: " + e.getMessage());
         }
-    }
-    
-    @PostMapping("/init-demo-data")
-    public ResponseEntity<Object> initDemoData() {
-        try {
-            // Crear paciente de prueba si no existe
-            String correoPaciente = "paciente@test.com";
-            Paciente paciente = pacienteRepo.findByCorreo(correoPaciente).orElse(null);
-            
-            if (paciente == null) {
-                paciente = new Paciente();
-                paciente.setNombre("María González");
-                paciente.setCorreo(correoPaciente);
-                paciente.setPassword(passwordEncoder.encode("123456"));
-                paciente.setRol(RolUsuario.PACIENTE);
-                paciente.setTelefono("555-1234");
-                paciente = pacienteService.registrarPaciente(paciente);
-            }
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Datos de demo inicializados",
-                "paciente", Map.of(
-                    "id", paciente.getId(),
-                    "nombre", paciente.getNombre(),
-                    "correo", paciente.getCorreo(),
-                    "rol", paciente.getRol().name()
-                )
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "error", "Error al inicializar datos: " + e.getMessage()
-            ));
-        }
-    }
-
-    @PostMapping("/test-connection")
-    public ResponseEntity<Object> testConnection() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "OK");
-        response.put("message", "Backend funcionando correctamente");
-        response.put("timestamp", java.time.LocalDateTime.now());
-        response.put("version", "1.0.0");
-        return ResponseEntity.ok(response);
     }
 
     // Clase para la petición de login

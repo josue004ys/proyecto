@@ -16,12 +16,14 @@ import com.example.proyecto.dto.CitaDTO;
 import com.example.proyecto.entity.Cita;
 import com.example.proyecto.entity.Doctor;
 import com.example.proyecto.entity.FacturacionCita;
+import com.example.proyecto.entity.HorarioDoctor;
 import com.example.proyecto.entity.Paciente;
 import com.example.proyecto.entity.Transaccion;
 import com.example.proyecto.repository.CitaRepository;
 import com.example.proyecto.repository.DoctorRepository;
 import com.example.proyecto.repository.TransaccionRepository;
 import com.example.proyecto.service.CitaService;
+import com.example.proyecto.service.HorarioDoctorService;
 
 @Service
 @Transactional
@@ -35,6 +37,9 @@ public class CitaServiceImpl implements CitaService {
     
     @Autowired
     private TransaccionRepository transaccionRepo;
+
+    @Autowired
+    private HorarioDoctorService horarioDoctorService;
 
     @Override
     @Transactional
@@ -105,6 +110,19 @@ public class CitaServiceImpl implements CitaService {
         
         // Verificar si el doctor tiene horario disponible en ese día y hora
         return doctorRepo.existsHorarioDisponible(doctorId, fecha.getDayOfWeek(), hora);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean verificarDisponibilidad(LocalDate fecha, LocalTime hora, Long doctorId) {
+        return estaDisponible(fecha, hora, doctorId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Cita obtenerCitaPorId(Long citaId) {
+        return citaRepo.findById(citaId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
     }
 
     @Override
@@ -379,5 +397,36 @@ public class CitaServiceImpl implements CitaService {
         System.out.println("Nuevo doctor: " + nuevoDoctor.getNombre());
         System.out.println("Mensaje: " + mensaje);
         System.out.println("====================================");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LocalTime> obtenerHorariosDisponibles(Long doctorId, LocalDate fecha) {
+        List<LocalTime> horariosDisponibles = new ArrayList<>();
+        
+        // Obtener los horarios del doctor para el día de la semana
+        List<HorarioDoctor> horariosDoctor = horarioDoctorService.obtenerHorariosPorDoctor(doctorId);
+        
+        // Filtrar por día de la semana
+        for (HorarioDoctor horario : horariosDoctor) {
+            if (horario.getDia().equals(fecha.getDayOfWeek()) && 
+                horario.getEstado() == HorarioDoctor.EstadoHorario.ACTIVO) {
+                
+                // Generar slots de tiempo disponibles
+                LocalTime horaActual = horario.getHoraInicio();
+                while (horaActual.isBefore(horario.getHoraFin())) {
+                    // Verificar si este horario específico está disponible
+                    if (estaDisponible(fecha, horaActual, doctorId)) {
+                        horariosDisponibles.add(horaActual);
+                    }
+                    
+                    // Avanzar según la duración de la cita (por defecto 30 minutos)
+                    int duracionMinutos = horario.getDuracionCita() != null ? horario.getDuracionCita() : 30;
+                    horaActual = horaActual.plusMinutes(duracionMinutos);
+                }
+            }
+        }
+        
+        return horariosDisponibles;
     }
 }

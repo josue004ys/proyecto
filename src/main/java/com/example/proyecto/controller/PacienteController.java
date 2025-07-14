@@ -43,25 +43,4 @@ public class PacienteController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    // Endpoint de debug para verificar pacientes
-    @GetMapping("/debug")
-    public ResponseEntity<?> debugPacientes() {
-        try {
-            List<Paciente> pacientes = pacienteService.obtenerTodosPacientes();
-            return ResponseEntity.ok(Map.of(
-                "totalPacientes", pacientes.size(),
-                "pacientes", pacientes.stream()
-                    .map(paciente -> Map.of(
-                        "id", paciente.getId(),
-                        "nombre", paciente.getNombre(),
-                        "correo", paciente.getCorreo(),
-                        "rol", paciente.getRol().name()
-                    ))
-                    .collect(Collectors.toList())
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
 }
