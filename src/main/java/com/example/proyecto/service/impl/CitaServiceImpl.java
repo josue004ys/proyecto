@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -421,12 +422,46 @@ public class CitaServiceImpl implements CitaService {
                     }
                     
                     // Avanzar según la duración de la cita (por defecto 30 minutos)
-                    int duracionMinutos = horario.getDuracionCita() != null ? horario.getDuracionCita() : 30;
+                    Integer duracionCitaObj = horario.getDuracionCita();
+                    int duracionMinutos = (duracionCitaObj != null) ? duracionCitaObj.intValue() : 30;
                     horaActual = horaActual.plusMinutes(duracionMinutos);
                 }
             }
         }
         
         return horariosDisponibles;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> obtenerDiasDisponibles(Long doctorId) {
+        List<HorarioDoctor> horariosDoctor = horarioDoctorService.obtenerHorariosPorDoctor(doctorId);
+        
+        return horariosDoctor.stream()
+            .filter(horario -> horario.getEstado() == HorarioDoctor.EstadoHorario.ACTIVO)
+            .map(horario -> convertirDiaSemanaAEspanol(horario.getDia()))
+            .distinct()
+            .sorted(this::compararDiasSemana)
+            .collect(Collectors.toList());
+    }
+    
+    private String convertirDiaSemanaAEspanol(java.time.DayOfWeek dia) {
+        switch (dia) {
+            case MONDAY: return "Lunes";
+            case TUESDAY: return "Martes";
+            case WEDNESDAY: return "Miércoles";
+            case THURSDAY: return "Jueves";
+            case FRIDAY: return "Viernes";
+            case SATURDAY: return "Sábado";
+            case SUNDAY: return "Domingo";
+            default: return dia.name();
+        }
+    }
+    
+    private int compararDiasSemana(String dia1, String dia2) {
+        String[] orden = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
+        int pos1 = java.util.Arrays.asList(orden).indexOf(dia1);
+        int pos2 = java.util.Arrays.asList(orden).indexOf(dia2);
+        return Integer.compare(pos1, pos2);
     }
 }

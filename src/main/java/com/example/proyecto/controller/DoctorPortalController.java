@@ -1,22 +1,31 @@
 package com.example.proyecto.controller;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.proyecto.entity.Cita;
 import com.example.proyecto.entity.Doctor;
 import com.example.proyecto.entity.HorarioDoctor;
 import com.example.proyecto.service.CitaService;
 import com.example.proyecto.service.DoctorService;
 import com.example.proyecto.service.HorarioDoctorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/doctor/portal")
@@ -250,9 +259,8 @@ public class DoctorPortalController {
     // ============= MÉTODOS AUXILIARES =============
     
     private Long obtenerDoctorIdDelToken(Authentication auth) {
-        // Implementar extracción del ID del doctor desde el token JWT
-        // Por ahora retornamos un valor mock
-        return 1L; // TODO: Implementar extracción real del token
+    
+        return 1L;
     }
     
     private boolean esHorarioDelDoctor(Long horarioId, Long doctorId) {

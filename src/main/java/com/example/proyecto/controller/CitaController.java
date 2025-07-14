@@ -226,9 +226,7 @@ public class CitaController {
 
     // ========= GESTIÓN DE CITAS CUANDO EL DOCTOR NO PUEDE ATENDER =========
 
-    /**
-     * Reprogramar una cita cuando el doctor no puede atender
-     */
+   
     @PutMapping("/{citaId}/reprogramar")
     public ResponseEntity<?> reprogramarCita(
             @PathVariable Long citaId,
@@ -319,9 +317,7 @@ public class CitaController {
         }
     }
 
-    /**
-     * Obtener doctores disponibles de la misma especialidad para reasignación
-     */
+    
     @GetMapping("/{citaId}/doctores-disponibles")
     public ResponseEntity<?> obtenerDoctoresDisponibles(@PathVariable Long citaId) {
         try {
@@ -361,7 +357,6 @@ public class CitaController {
         }
     }
 
-    // ========= GESTIÓN DE CITAS POR PARTE DEL PACIENTE =========
 
     /**
      * Cancelar cita por parte del paciente
@@ -452,15 +447,33 @@ public class CitaController {
             LocalDate fechaConsulta = LocalDate.parse(fecha);
             List<LocalTime> horariosDisponibles = citaService.obtenerHorariosDisponibles(doctorId, fechaConsulta);
             
-            return ResponseEntity.ok(Map.of(
-                "fecha", fecha,
-                "doctorId", doctorId,
-                "horarios", horariosDisponibles
-            ));
+            // Convertir LocalTime a String para el frontend
+            List<String> horariosString = horariosDisponibles.stream()
+                .map(LocalTime::toString)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(horariosString);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "Error al obtener horarios disponibles: " + e.getMessage()
             ));
+        }
+    }
+
+    @GetMapping("/doctor/{doctorId}/dias-disponibles")
+    public ResponseEntity<Map<String, Object>> obtenerDiasDisponibles(@PathVariable Long doctorId) {
+        try {
+            List<String> diasDisponibles = citaService.obtenerDiasDisponibles(doctorId);
+            
+            Map<String, Object> response = Map.of(
+                "diasDisponibles", diasDisponibles,
+                "mensaje", "Días disponibles obtenidos exitosamente",
+                "doctorId", doctorId
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

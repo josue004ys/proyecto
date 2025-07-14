@@ -46,7 +46,7 @@ public class AuthController {
                     LoginResponse response = new LoginResponse(
                         doctor.getCorreo(),
                         doctor.getNombre(),
-                        "MEDICO", // Rol del doctor (consistente con frontend)
+                        "MEDICO", // Rol del doctor 
                         "Médico", // Descripción del rol
                         "Login exitoso como doctor",
                         doctor.getId() // Incluir doctorId
@@ -72,8 +72,8 @@ public class AuthController {
                 LoginResponse response = new LoginResponse(
                     paciente.getCorreo(),
                     paciente.getNombre(),
-                    paciente.getRol().name(), // Agregar rol
-                    paciente.getRol().getDescripcion(), // Agregar descripción del rol
+                    paciente.getRol().name(), 
+                    paciente.getRol().getDescripcion(), 
                     "Login exitoso"
                 );
                 return ResponseEntity.ok(response);
@@ -110,7 +110,7 @@ public class AuthController {
             paciente.setPassword(request.getPassword());
             paciente.setNombre(request.getNombre().trim());
             
-            // Asignar rol (por defecto PACIENTE si no se especifica)
+            // Asignar rol 
             if (request.getRol() != null && !request.getRol().isEmpty()) {
                 try {
                     RolUsuario rol = RolUsuario.valueOf(request.getRol().toUpperCase());
@@ -119,8 +119,7 @@ public class AuthController {
                     return ResponseEntity.badRequest().body("Rol inválido: " + request.getRol());
                 }
             }
-            // Si no se especifica rol, queda como PACIENTE (valor por defecto)
-            
+          
             // Registrar usando el servicio
             pacienteService.registrarPaciente(paciente);
             
@@ -150,7 +149,7 @@ public class AuthController {
         private String correo;
         private String password;
         private String nombre;
-        private String rol; // Nuevo campo para el rol
+        private String rol; 
         
         public RegisterRequest() {}
         
@@ -167,7 +166,7 @@ public class AuthController {
         public void setRol(String rol) { this.rol = rol; }
     }
     
-    // Clase para la respuesta del login (sin JWT)
+    // Clase para la respuesta del login 
     public static class LoginResponse {
         private String correo;
         private String nombre;
