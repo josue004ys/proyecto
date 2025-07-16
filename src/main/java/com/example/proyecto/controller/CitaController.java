@@ -179,7 +179,18 @@ public class CitaController {
     public ResponseEntity<?> confirmarCita(@PathVariable Long id) {
         try {
             Cita cita = citaService.confirmarCita(id);
-            return ResponseEntity.ok(cita);
+            
+            // Crear respuesta simple para evitar referencias circulares
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", "Cita confirmada exitosamente",
+                "citaId", cita.getId(),
+                "estado", cita.getEstado().toString(),
+                "fecha", cita.getFecha().toString(),
+                "hora", cita.getHora().toString()
+            );
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
