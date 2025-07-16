@@ -19,6 +19,11 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     
     List<Doctor> findByEstado(Doctor.EstadoDoctor estado);
     
+    // Métodos para reportes
+    long countByEstado(Doctor.EstadoDoctor estado);
+    
+    long countByEspecialidad(String especialidad);
+    
     @Query("SELECT d FROM Doctor d WHERE d.especialidad = :especialidad AND d.estado = 'ACTIVO'")
     List<Doctor> findDoctoresActivosPorEspecialidad(@Param("especialidad") String especialidad);
     
