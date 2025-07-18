@@ -36,6 +36,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody LoginRequest request) {
         try {
+            // Manejar usuario administrador especial
+            if ("admin@hospital.com".equals(request.getCorreo()) && "admin123".equals(request.getPassword())) {
+                LoginResponse response = new LoginResponse(
+                    "admin@hospital.com",
+                    "Administrador del Sistema",
+                    "ADMINISTRADOR", 
+                    "Administrador", 
+                    "Login exitoso como administrador"
+                );
+                return ResponseEntity.ok(response);
+            }
+            
             // Primero buscar en doctores
             Doctor doctor = doctorRepo.findByCorreo(request.getCorreo())
                 .orElse(null);
