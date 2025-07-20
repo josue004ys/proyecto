@@ -61,6 +61,15 @@ public class Paciente {
     private String seguroMedico;
 
     private String numeroPoliza;
+    
+    // Control de reprogramaciones para evitar abuso
+    private Integer reprogramacionesUltimoMes = 0; // Contador mensual
+    
+    private LocalDate fechaUltimaReprogramacion; // Para resetear contador mensual
+    
+    private Boolean bloqueadoPorAbuso = false; // Si está bloqueado temporalmente
+    
+    private LocalDate fechaDesbloqueoPorAbuso; // Hasta cuándo está bloqueado
 
     // Relaciones
     @OneToOne(mappedBy = "paciente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

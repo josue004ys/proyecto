@@ -15,7 +15,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -56,6 +55,11 @@ public class Cita {
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
     private LocalDateTime fechaModificacion;
+    
+    // Control de reprogramaciones
+    private Integer numeroReprogramaciones = 0; // Contador de reprogramaciones
+    
+    private LocalDateTime ultimaReprogramacion; // Fecha de la última reprogramación
 
     // Para sistema de pagos
     @Embedded
@@ -119,6 +123,12 @@ public class Cita {
 
     public LocalDateTime getFechaModificacion() { return fechaModificacion; }
     public void setFechaModificacion(LocalDateTime fechaModificacion) { this.fechaModificacion = fechaModificacion; }
+
+    public Integer getNumeroReprogramaciones() { return numeroReprogramaciones; }
+    public void setNumeroReprogramaciones(Integer numeroReprogramaciones) { this.numeroReprogramaciones = numeroReprogramaciones; }
+
+    public LocalDateTime getUltimaReprogramacion() { return ultimaReprogramacion; }
+    public void setUltimaReprogramacion(LocalDateTime ultimaReprogramacion) { this.ultimaReprogramacion = ultimaReprogramacion; }
 
     public FacturacionCita getFacturacion() { return facturacion; }
     public void setFacturacion(FacturacionCita facturacion) { this.facturacion = facturacion; }

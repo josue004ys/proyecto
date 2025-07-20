@@ -121,6 +121,13 @@ public class CitaServiceImpl implements CitaService {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean verificarCitaExistenteMismoDia(Long pacienteId, Long doctorId, LocalDate fecha) {
+        List<Cita> citasExistentes = citaRepo.findByPacienteIdAndDoctorIdAndFecha(pacienteId, doctorId, fecha);
+        return !citasExistentes.isEmpty();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Cita obtenerCitaPorId(Long citaId) {
         return citaRepo.findById(citaId)
                 .orElseThrow(() -> new RuntimeException("Cita no encontrada"));

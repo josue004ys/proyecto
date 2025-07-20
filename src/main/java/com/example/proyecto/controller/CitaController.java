@@ -28,6 +28,8 @@ import com.example.proyecto.entity.RolUsuario;
 import com.example.proyecto.service.CitaService;
 import com.example.proyecto.service.DoctorService;
 import com.example.proyecto.service.PacienteService;
+import com.example.proyecto.service.ReprogramacionValidationService;
+import com.example.proyecto.service.ReprogramacionValidationService.ValidationResult;
 
 @RestController
 @RequestMapping("/api/citas")
@@ -44,6 +46,9 @@ public class CitaController {
     private DoctorService doctorService;
 
     @Autowired
+    private ReprogramacionValidationService reprogramacionValidationService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // Método principal para agendar citas (JSON)
@@ -52,9 +57,9 @@ public class CitaController {
         try {
             // Validaciones básicas
             if (!solicitud.containsKey("doctorId") || !solicitud.containsKey("fecha") || 
-                !solicitud.containsKey("hora") || !solicitud.containsKey("motivoConsulta")) {
+                !solicitud.containsKey("hora")) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Faltan datos requeridos: doctorId, fecha, hora, motivoConsulta"
+                    "error", "Faltan datos requeridos: doctorId, fecha, hora"
                 ));
             }
 
@@ -62,7 +67,14 @@ public class CitaController {
             Long doctorId = Long.valueOf(solicitud.get("doctorId").toString());
             String fecha = solicitud.get("fecha").toString();
             String hora = solicitud.get("hora").toString();
-            String motivoConsulta = solicitud.get("motivoConsulta").toString();
+            // Motivo de consulta es opcional
+            String motivoConsulta = "";
+            if (solicitud.containsKey("motivoConsulta") && solicitud.get("motivoConsulta") != null) {
+                String motivo = solicitud.get("motivoConsulta").toString().trim();
+                motivoConsulta = motivo.isEmpty() ? "Consulta general" : motivo;
+            } else {
+                motivoConsulta = "Consulta general";
+            }
             
             // Datos del paciente - REQUERIDOS
             if (!solicitud.containsKey("correoPaciente")) {
@@ -92,6 +104,15 @@ public class CitaController {
             // Convertir strings a tipos apropiados
             LocalDate fechaCita = LocalDate.parse(fecha);
             LocalTime horaCita = LocalTime.parse(hora);
+
+            // Verificar si el paciente ya tiene una cita el mismo día con el mismo doctor
+            boolean yaExisteCitaMismoDia = citaService.verificarCitaExistenteMismoDia(paciente.getId(), doctorId, fechaCita);
+            if (yaExisteCitaMismoDia) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Ya tiene una cita agendada el mismo día con este doctor. " +
+                            "No se pueden agendar múltiples citas el mismo día con el mismo médico."
+                ));
+            }
 
             // Agendar la cita
             Cita cita = citaService.agendarCita(paciente, fechaCita, horaCita, doctorId, motivoConsulta);
@@ -418,10 +439,21 @@ public class CitaController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Correo del usuario requerido"));
             }
 
-            // Verificar que la cita pertenece al paciente
+            // Obtener la cita y el paciente
             Cita cita = citaService.obtenerCitaPorId(citaId);
             if (!cita.getPaciente().getCorreo().equals(correoUsuario)) {
                 return ResponseEntity.badRequest().body(Map.of("error", "No tiene permisos para reprogramar esta cita"));
+            }
+
+            Paciente paciente = cita.getPaciente();
+            
+            // Verificar y desbloquear paciente si ya pasó el tiempo de bloqueo
+            reprogramacionValidationService.verificarYDesbloquearPaciente(paciente);
+            
+            // Validar si la reprogramación es permitida
+            ValidationResult validacion = reprogramacionValidationService.validarReprogramacion(cita, paciente);
+            if (!validacion.isValido()) {
+                return ResponseEntity.badRequest().body(Map.of("error", validacion.getMensaje()));
             }
 
             // Verificar disponibilidad en la nueva fecha/hora
@@ -435,12 +467,20 @@ public class CitaController {
                 ));
             }
 
+            // Actualizar contadores antes de reprogramar
+            reprogramacionValidationService.actualizarContadoresReprogramacion(cita, paciente);
+            
+            // Guardar el paciente con los contadores actualizados
+            pacienteService.registrarPaciente(paciente);
+
             // Reprogramar la cita
-            CitaDTO citaDTO = citaService.reprogramarCita(citaId, fecha, hora, motivo, "Reprogramada por indisponibilidad del doctor");
+            CitaDTO citaDTO = citaService.reprogramarCita(citaId, fecha, hora, motivo, "Reprogramada por el paciente");
             
             return ResponseEntity.ok(Map.of(
                 "mensaje", "Cita reprogramada exitosamente",
-                "cita", citaDTO
+                "cita", citaDTO,
+                "reprogramacionesRestantes", (2 - cita.getNumeroReprogramaciones()),
+                "reprogramacionesMesPaciente", paciente.getReprogramacionesUltimoMes()
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

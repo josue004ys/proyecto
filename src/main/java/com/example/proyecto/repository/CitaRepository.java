@@ -67,4 +67,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     
     // Citas pendientes de un doctor
     List<Cita> findByDoctorAndEstadoOrderByFechaAscHoraAsc(Doctor doctor, Cita.EstadoCita estado);
+    
+    // Verificar si ya existe una cita para el mismo paciente con el mismo doctor en la misma fecha
+    List<Cita> findByPacienteIdAndDoctorIdAndFecha(Long pacienteId, Long doctorId, LocalDate fecha);
 }

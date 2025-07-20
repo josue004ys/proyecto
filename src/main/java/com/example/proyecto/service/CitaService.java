@@ -67,4 +67,9 @@ public interface CitaService {
      * Verificar disponibilidad de un doctor en fecha y hora específica
      */
     boolean verificarDisponibilidad(LocalDate fecha, LocalTime hora, Long doctorId);
+    
+    /**
+     * Verificar si ya existe una cita para el mismo paciente con el mismo doctor en la misma fecha
+     */
+    boolean verificarCitaExistenteMismoDia(Long pacienteId, Long doctorId, LocalDate fecha);
 }
